@@ -1,7 +1,7 @@
 {
   "name": "kibana_nori_manager",
   "version": "7.4.2",
-  "description": "Nori korean analyzer management UI Kibana plugin",
+  "description": "Elasticsearch Korean (nori) analysis plugin management Kibana app",
   "main": "index.js",
   "kibana": {
     "version": "8.0.0",

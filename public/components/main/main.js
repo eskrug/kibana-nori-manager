@@ -1,12 +1,14 @@
 import React, { Component, Fragment } from 'react';
 import {
   EuiPage,
-  EuiPageHeader,
-  EuiTitle,
   EuiPageBody,
   EuiPageContent,
-  EuiPageContentHeader,
   EuiPageContentBody,
+  EuiPageContentHeader,
+  EuiPageContentHeaderSection,
+  EuiPageHeader,
+  EuiPageHeaderSection,
+  EuiTitle,
   EuiText,
   EuiFieldText,
   EuiSwitch, EuiSpacer,
@@ -15,20 +17,25 @@ import {
   EuiFlexGroup,
   EuiPanel, EuiCode,
   EuiTextArea, EuiComboBox,
-  EuiButton, EuiFormRow
+  EuiButton, EuiFormRow,
 } from '@elastic/eui';
 
-// occurs error if : import makeId from '@elastic/eui
+/**
+ * 데모 코드대로 @elastic/eui 에서 makeId 호출하면 오류 발생. 아래 경로에서 호출해야 함.
+ * TypeError: "_eui.makeId is not a function" when import makeId from '@elastic/eui demo code. Must import from below.
+ */
 import makeId from '@elastic/eui/lib/components/form/form_row/make_id';
-
 import { FormattedMessage } from '@kbn/i18n/react';
-import posData from '../kr-pos.json';
+import posData from '../resource/kr-pos.json';
 
 export class Main extends Component {
   constructor(props) {
     super(props);
     
-    // nori_tokenizer : decompound_mode elements
+    /**
+     * nori_tokenizer : decompound_mode 설정에 사용할 요소들
+     * nori_tokenizer : decompound_mode elements
+     */
     const decMId = makeId();
     this.decMRadios = [
       {id: `${decMId}0`, label: 'none',},
@@ -50,47 +57,55 @@ export class Main extends Component {
 서울대 => 서울대, 서울, 대`,
     };
 
+    /**
+     * nori_part_of_speech 토큰 필터 : stoptags 요소들. ../reousrce/kr-pos.json 파일 호출
+     * nori_part_of_speech token filter : stoptags elements. Imported from ../reousrce/kr-pos.json
+     */
     this.posOptions = posData.DATA;
     this.posDefault = posData.defalut_stoptags;
-    // states
+
+    /**
+     * inputTxt : 분석할 텍스트값 - Text to analysis value
+     * indexName : (임시) 인덱스명 - Index name value
+     * dec* : decompound_mode 관련 요소 - decompound_mode settings form elements
+     * uDict* : 사용자 사전 관련 요소 - user dictionary settings form elements
+     * pos* : nori_part_of_speech 토큰 필터 관련 요소 - nori_part_of_speech form elements
+     * readF : nori_readingform 토큰 필터 관련 요소 - nori_readingform form elements
+     */
     this.state = {
-      indexName: '',
-      decMRadioIdSelected: `${decMId}1`,
-      decompModeTxt: this.decompModeTxtVal[`${decMId}1`],
       inputTxt: '',
-      userDictChecked: false,
-      uDictPanChecked: true,
-      uDictRulePanChecked: false,
-      uDictPath: '',
-      uDictWords: [],
-      stoptagsChecked: false,
-      selectedPosOptions: this.posDefault,
-      posError: undefined,
+      indexName: '',
+      decMRadioIdSelected: `${decMId}1`, decompModeTxt: this.decompModeTxtVal[`${decMId}1`],
+      uDictChecked: false, uDictPanChecked: true, uDictRulePanChecked: false, uDictPath: '', uDictWords: [],
+      posStoptagsChecked: false, posSelectedOpts: this.posDefault, posError: undefined,
+      readFChecked: false,
     };
   }
 
-  onPosChange = selectedOptions => {
-    this.setState({
-      posError: undefined,
-      selectedPosOptions: selectedOptions,
-    });
-  };
-
-  // 분석할 텍스트 설정 : Text to analyze
+  /**
+   * 분석할 텍스트값 폼 이벤트
+   * Text to analysis form event
+   */
   onInputTxtChange = e => {
     this.setState({
       inputTxt: e.target.value,
     });
   }
 
-  // 인덱스명 설정 - Index Name settings
+  /**
+   * (임시) 인덱스명 폼 이벤트
+   * Index Name form event
+   */
   onIndexNameChange = e => {
     this.setState({
       indexName: e.target.value,
     });
   };
   
-  // decompound_mode 라디오 버튼 설정
+  /**
+   * decompound_mode (none, discard, mixed) 설정 라디오 버튼 이벤트
+   * decompound_mode (none, discard, mixed) radio buttons event
+   */
   onDecMRadioChange = decMRadiOptionId => {
     this.setState({
       decMRadioIdSelected: decMRadiOptionId,
@@ -98,29 +113,52 @@ export class Main extends Component {
     });
   };
 
-  // user_dictionary 설정
+  /**
+   * 사용자 정의 사전 사용 스위치 이벤트
+   * user_dictionary switch event
+   */
   onSetUserDictChange = e => {
     this.setState({
-      userDictChecked: e.target.checked,
+      uDictChecked: e.target.checked,
     });
   };
+
+  /**
+   * user_dictionary 패널의 라디오 버튼 이벤트
+   * radio button event on user_dictionary panel
+   */
   onUDictPanChange = e => {
     this.setState({
       uDictPanChecked: e.target.checked,
       uDictRulePanChecked: !e.target.checked,
     });
   };
+
+  /**
+   * user_dictionary_rules 패널의 라디오 버튼 이벤트
+   * radio button event on user_dictionary_rules panel
+   */
   onUDictRulePanChange = e => {
     this.setState({
       uDictRulePanChecked: e.target.checked,
       uDictPanChecked: !e.target.checked,
     });
   };
+
+  /**
+   * 저장된 사전 파일 경로 패스 입력 폼 이벤트
+   * user_dictionary path input form event
+   */
   onUDictPathChange = e => {
     this.setState({
       uDictPath: e.target.value,
     });
   };
+
+  /**
+   * 사전 직접 입력 폼 이벤트
+   * user_dictionary_rules input form events
+   */
   onUDictWordsCreateOption = searchValue => {
     const newOption = {
       label: searchValue,
@@ -132,34 +170,53 @@ export class Main extends Component {
   onUDictWordsChange = uDictWords => {
     this.setState({
       uDictWords,
-      // isInvalid: false,
     });
   };
 
-  // nori_part_of_speech
+  /**
+   * nori_part_of_speech stoptags 스위치 이벤트
+   * nori_part_of_speech stoptags switch event
+   */
   onStoptagsChange = e => {
     this.setState({
       posError: undefined,
-      stoptagsChecked: e.target.checked,
+      posStoptagsChecked: e.target.checked,
     });
   };
+
+  /**
+   * nori_part_of_speech : stoptags 입력 폼 이벤트들
+   * nori_part_of_speech : stoptags input form events
+   */
   onPosSearchChange = (value, hasMatchingOptions) => {
     this.setState({
       posError:
-        value.length === 0 || hasMatchingOptions
-          ? undefined
-          : `"${value}" 는 유효하지 않은 옵션입니다.`,
+        value.length === 0 || hasMatchingOptions ? undefined : `"${value}" 는 유효하지 않은 옵션입니다.`,
     });
   };
   onPosBlur = () => {
     const { value } = this.inputRef;
     this.setState({
-      error:
-        value.length === 0 ? undefined : `"${value}" 는 유효하지 않은 옵션입니다.`,
+      error: value.length === 0 ? undefined : `"${value}" 는 유효하지 않은 옵션입니다.`,
     });
   };
   setPosInputRef = ref => (this.inputRef = ref);
+  onPosChange = selectedOptions => {
+    this.setState({
+      posError: undefined,
+      posSelectedOpts: selectedOptions,
+    });
+  };
 
+  /**
+   * nori_readingform 스위치 이벤트
+   * nori_readingform switch event
+   */
+  onReadFChange = e => {
+    this.setState({
+      readFChecked: e.target.checked,
+    });
+  };
 
   componentDidMount() {
     /*
@@ -196,6 +253,13 @@ export class Main extends Component {
               <EuiPageContentBody>
                 <EuiText>
 
+<h2>인덱스명 (Index Name)</h2>
+<EuiFieldText
+  placeholder="인덱스명 (Index Name)"
+  value={this.state.indexName}
+  onChange={this.onIndexNameChange}
+  />
+
 <h2>분석할 텍스트 (Text to analyze)</h2>
 <div>
   <EuiFlexGroup>
@@ -203,7 +267,7 @@ export class Main extends Component {
       <EuiTextArea
       fullWidth={true}
       placeholder="분석할 텍스트를 입력하세요"
-      aria-label="Text to analyze"
+      aria-label="Text to analysis"
       value={this.state.inputTxt}
       onChange={this.onInputTxtChange}
       />
@@ -213,19 +277,21 @@ export class Main extends Component {
     </EuiFlexItem>
   </EuiFlexGroup>
 </div>
-
-<h2>인덱스명 (Index Name)</h2>
-<EuiFieldText
-placeholder="인덱스명 (Index Name)"
-value={this.state.indexName}
-onChange={this.onIndexNameChange}
-/>
               
 <h2>Analyzer 설정</h2>
 
+<h3>Tokenizer</h3>
+<EuiPageContent>
+<EuiPageContentHeader>
+    <EuiPageContentHeaderSection>
+      <EuiTitle>
 <h3>nori_tokenizer</h3>
+      </EuiTitle>
+    </EuiPageContentHeaderSection>
+  </EuiPageContentHeader>
+  <EuiPageContentBody>
 
-<h4>decompound_mode</h4>
+  <h4>decompound_mode</h4>
 <div>
   <EuiFlexGroup>
     <EuiFlexItem grow={false}>
@@ -246,7 +312,7 @@ onChange={this.onIndexNameChange}
 <h4>
 <EuiSwitch
 label="사용자 정의 사전 사용"
-checked={this.state.userDictChecked}
+checked={this.state.uDictChecked}
 onChange={this.onSetUserDictChange}
 />
 </h4>
@@ -259,7 +325,7 @@ onChange={this.onSetUserDictChange}
   checked={this.state.uDictPanChecked}
   onChange={this.onUDictPanChange}
   compressed
-  disabled={!this.state.userDictChecked}
+  disabled={!this.state.uDictChecked}
   />
   </h4>
   <p>저장된 사전 파일을 사용합니다</p>
@@ -268,7 +334,7 @@ onChange={this.onSetUserDictChange}
   placeholder="사전 파일 경로"
   value={this.state.uDictPath}
   onChange={this.onUDictPathChange}
-  disabled={!(this.state.userDictChecked && this.state.uDictPanChecked)}
+  disabled={!(this.state.uDictChecked && this.state.uDictPanChecked)}
   fullWidth
   />
 </EuiPanel>
@@ -281,7 +347,7 @@ onChange={this.onSetUserDictChange}
   checked={this.state.uDictRulePanChecked}
   onChange={this.onUDictRulePanChange}
   compressed
-  disabled={!this.state.userDictChecked}
+  disabled={!this.state.uDictChecked}
   />
   </h4>
   <p>Index Settings 설정에 직접 사전을 입력합니다</p>
@@ -292,16 +358,28 @@ onChange={this.onSetUserDictChange}
   selectedOptions={this.state.uDictWords}
   onCreateOption={this.onUDictWordsCreateOption}
   onChange={this.onUDictWordsChange}
-  isDisabled={!(this.state.userDictChecked && this.state.uDictRulePanChecked)}
+  isDisabled={!(this.state.uDictChecked && this.state.uDictRulePanChecked)}
   />
 </EuiPanel>
 
+  </EuiPageContentBody>
+</EuiPageContent>
+
+<h3>Token Filters</h3>
+<EuiPageContent>
+  <EuiPageContentHeader>
+    <EuiPageContentHeaderSection>
+      <EuiTitle>
 <h3>nori_part_of_speech</h3>
+      </EuiTitle>
+    </EuiPageContentHeaderSection>
+  </EuiPageContentHeader>
+  <EuiPageContentBody>
 
 <h4>
 <EuiSwitch
 label="stoptags"
-checked={this.state.stoptagsChecked}
+checked={this.state.posStoptagsChecked}
 onChange={this.onStoptagsChange}
 />
 </h4>
@@ -313,16 +391,39 @@ isInvalid={this.state.posError !== undefined}>
   fullWidth={true}
   placeholder="제거할 POS TAG를 입력하세요"
   options={this.posOptions}
-  selectedOptions={this.state.selectedPosOptions}
+  selectedOptions={this.state.posSelectedOpts}
   onChange={this.onPosChange}
   // onCreateOption={this.onCreatePosOption}
   isClearable={true}
   onSearchChange={this.onPosSearchChange}
   inputRef={this.setPosInputRef}
   onBlur={this.onPosBlur}
-  isDisabled={!this.state.stoptagsChecked}
+  isDisabled={!this.state.posStoptagsChecked}
   />
 </EuiFormRow>
+
+  </EuiPageContentBody>
+  
+  <EuiSpacer size="xl" />
+
+  <EuiPageContentHeader>
+    <EuiPageContentHeaderSection>
+      <EuiTitle>
+<h3>nori_readingform</h3>
+      </EuiTitle>
+    </EuiPageContentHeaderSection>
+  </EuiPageContentHeader>
+  <EuiPageContentBody>
+
+<EuiSwitch
+label="nori_readingform 사용"
+checked={this.state.readFChecked}
+onChange={this.onReadFChange}
+/>
+
+  </EuiPageContentBody>
+
+</EuiPageContent>
 
               </EuiText>
             </EuiPageContentBody>
