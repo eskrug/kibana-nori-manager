@@ -1,0 +1,9 @@
+{
+  "paths": {
+    "tempPlugin": "./"
+  },
+  "translations": [
+    "translations/zh-CN.json"
+  ]
+}
+
